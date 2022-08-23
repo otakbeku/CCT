@@ -12,7 +12,7 @@ from utils.losses import CE_loss
 
 class CCT(BaseModel):
     def __init__(self, num_classes, conf, sup_loss=None, cons_w_unsup=None, ignore_index=None, testing=False,
-            pretrained=True, use_weak_lables=False, weakly_loss_w=0.4):
+            pretrained=True, use_weak_lables=False, weakly_loss_w=0.4, backbone_name='resnet18d'):
 
         if not testing:
             assert (ignore_index is not None) and (sup_loss is not None) and (cons_w_unsup is not None)
@@ -27,13 +27,13 @@ class CCT(BaseModel):
         # Supervised and unsupervised losses
         self.ignore_index = ignore_index
         if conf['un_loss'] == "KL":
-        	self.unsuper_loss = softmax_kl_loss
+            self.unsuper_loss = softmax_kl_loss
         elif conf['un_loss'] == "MSE":
-        	self.unsuper_loss = softmax_mse_loss
+            self.unsuper_loss = softmax_mse_loss
         elif conf['un_loss'] == "JS":
-        	self.unsuper_loss = softmax_js_loss
+            self.unsuper_loss = softmax_js_loss
         else:
-        	raise ValueError(f"Invalid supervised loss {conf['un_loss']}")
+            raise ValueError(f"Invalid supervised loss {conf['un_loss']}")
 
         self.unsup_loss_w = cons_w_unsup
         self.sup_loss_w = conf['supervised_w']
@@ -52,11 +52,11 @@ class CCT(BaseModel):
         self.confidence_masking = conf['confidence_masking']
 
         # Create the model
-        self.encoder = Encoder(pretrained=pretrained)
+        self.encoder = Encoder(pretrained=pretrained, backbone_name=backbone_name)
 
         # The main encoder
         upscale = 8
-        num_out_ch = 2048
+        num_out_ch = self.encoder.num_out_ch
         decoder_in_ch = num_out_ch // 4
         self.main_decoder = MainDecoder(upscale, decoder_in_ch, num_classes=num_classes)
 

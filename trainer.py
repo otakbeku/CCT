@@ -42,7 +42,8 @@ class Trainer(BaseTrainer):
             transforms.ToTensor()])
 
         self.start_time = time.time()
-
+        # logger
+        self.train_logger.wandb_watch(self.model)
 
 
     def _train_epoch(self, epoch):
@@ -140,11 +141,12 @@ class Trainer(BaseTrainer):
                     val_visual.append([data[0].data.cpu(), target_np[0], output_np[0]])
 
                 # PRINT INFO
-                pixAcc = 1.0 * total_correct / (np.spacing(1) + total_label)
-                IoU = 1.0 * total_inter / (np.spacing(1) + total_union)
-                mIoU = IoU.mean()
-                seg_metrics = {"Pixel_Accuracy": np.round(pixAcc, 3), "Mean_IoU": np.round(mIoU, 3),
-                                "Class_IoU": dict(zip(range(self.num_classes), np.round(IoU, 3)))}
+                # pixAcc = 1.0 * total_correct / (np.spacing(1) + total_label)
+                # IoU = 1.0 * total_inter / (np.spacing(1) + total_union)
+                # mIoU = IoU.mean()
+                pixAcc, mIoU, cIoU = self._get_seg_metrics(supervised=True, val=True).values()
+                seg_metrics = {"Pixel_Accuracy": pixAcc, "Mean_IoU": mIoU,
+                                "Class_IoU":cIoU}
 
                 tbar.set_description('EVAL ({}) | Loss: {:.3f}, PixelAcc: {:.2f}, Mean IoU: {:.2f} |'.format( epoch,
                                                 total_loss_val.average, pixAcc, mIoU))
@@ -197,16 +199,16 @@ class Trainer(BaseTrainer):
 
 
 
-    def _compute_metrics(self, outputs, target_l, target_ul, epoch):
+    def _compute_metrics(self, outputs, target_l, target_ul, epoch, val=False):
         seg_metrics_l = eval_metrics(outputs['sup_pred'], target_l, self.num_classes, self.ignore_index)
         self._update_seg_metrics(*seg_metrics_l, True)
-        seg_metrics_l = self._get_seg_metrics(True)
+        seg_metrics_l = self._get_seg_metrics(True, val)
         self.pixel_acc_l, self.mIoU_l, self.class_iou_l = seg_metrics_l.values()
 
         if self.mode == 'semi':
             seg_metrics_ul = eval_metrics(outputs['unsup_pred'], target_ul, self.num_classes, self.ignore_index)
             self._update_seg_metrics(*seg_metrics_ul, False)
-            seg_metrics_ul = self._get_seg_metrics(False)
+            seg_metrics_ul = self._get_seg_metrics(False, val)
             self.pixel_acc_ul, self.mIoU_ul, self.class_iou_ul = seg_metrics_ul.values()
             
 
@@ -225,7 +227,20 @@ class Trainer(BaseTrainer):
 
 
 
-    def _get_seg_metrics(self, supervised=True):
+    # def _get_seg_metrics(self, supervised=True):
+    #     if supervised:
+    #         pixAcc = 1.0 * self.total_correct_l / (np.spacing(1) + self.total_label_l)
+    #         IoU = 1.0 * self.total_inter_l / (np.spacing(1) + self.total_union_l)
+    #     else:
+    #         pixAcc = 1.0 * self.total_correct_ul / (np.spacing(1) + self.total_label_ul)
+    #         IoU = 1.0 * self.total_inter_ul / (np.spacing(1) + self.total_union_ul)
+    #     mIoU = IoU.mean()
+    #     return {
+    #         "Pixel_Accuracy": np.round(pixAcc, 3),
+    #         "Mean_IoU": np.round(mIoU, 3),
+    #         "Class_IoU": dict(zip(range(self.num_classes), np.round(IoU, 3)))
+    #     }
+    def _get_seg_metrics(self, supervised=True, val=False):
         if supervised:
             pixAcc = 1.0 * self.total_correct_l / (np.spacing(1) + self.total_label_l)
             IoU = 1.0 * self.total_inter_l / (np.spacing(1) + self.total_union_l)
@@ -233,11 +248,29 @@ class Trainer(BaseTrainer):
             pixAcc = 1.0 * self.total_correct_ul / (np.spacing(1) + self.total_label_ul)
             IoU = 1.0 * self.total_inter_ul / (np.spacing(1) + self.total_union_ul)
         mIoU = IoU.mean()
-        return {
-            "Pixel_Accuracy": np.round(pixAcc, 3),
-            "Mean_IoU": np.round(mIoU, 3),
-            "Class_IoU": dict(zip(range(self.num_classes), np.round(IoU, 3)))
-        }
+        pixel_accuracy_txt = "Pixel_Accuracy"
+        mean_iou_txt = "Mean_IoU"
+        class_iou_txt = "Class_IoU"
+        if val:
+            pixel_accuracy_txt = 'Val_'+ pixel_accuracy_txt
+            mean_iou_txt = 'Val_'+ mean_iou_txt
+            class_iou_txt = 'Val_'+ class_iou_txt
+        if not supervised:
+            pixel_accuracy_txt = pixel_accuracy_txt +'_ul'
+            mean_iou_txt = mean_iou_txt +'_ul'
+            class_iou_txt = class_iou_txt +'_ul'
+        if hasattr(self.supervised_loader.dataset, 'class_names'):
+            return {
+            pixel_accuracy_txt: np.round(pixAcc, 3),
+            mean_iou_txt: np.round(mIoU, 3),
+            class_iou_txt: dict(zip(self.supervised_loader.dataset.class_names, np.round(IoU, 3)))
+            }
+        else:
+            return {
+                pixel_accuracy_txt: np.round(pixAcc, 3),
+                mean_iou_txt: np.round(mIoU, 3),
+                class_iou_txt: dict(zip(range(self.num_classes), np.round(IoU, 3)))
+            }
 
 
 

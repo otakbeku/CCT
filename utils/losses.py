@@ -111,11 +111,11 @@ class FocalLoss(nn.Module):
         target = torch.squeeze(target, 1)
         target = target.view(-1, 1)
 	
-	valid_mask = None
-	if self.ignore_index is not None:
-            valid_mask = target != self.ignore_index
-            target = target * valid_mask
-	
+        valid_mask = None
+        if self.ignore_index is not None:
+                valid_mask = target != self.ignore_index
+                target = target * valid_mask
+        
         alpha = self.alpha
 
         if alpha is None:
@@ -139,7 +139,7 @@ class FocalLoss(nn.Module):
         idx = target.cpu().long()
 
         one_hot_key = torch.FloatTensor(target.size(0), num_class).zero_()
-	
+    
         # to resolve error in idx in scatter_
         idx[idx==225]=0
         
@@ -158,7 +158,7 @@ class FocalLoss(nn.Module):
         alpha = alpha[idx]
         alpha = torch.squeeze(alpha)
         loss = -1 * alpha * torch.pow((1 - pt), gamma) * logpt
-	
+    
         if valid_mask is not None:
             loss = loss * valid_mask.squeeze()
         

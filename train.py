@@ -17,7 +17,7 @@ def get_instance(module, name, config, *args):
 
 def main(config, resume):
     torch.manual_seed(42)
-    train_logger = Logger()
+    train_logger = Logger(config)
 
     # DATA LOADERS
     config['train_supervised']['n_labeled_examples'] = config['n_labeled_examples']
@@ -46,7 +46,7 @@ def main(config, resume):
     model = models.CCT(num_classes=val_loader.dataset.num_classes, conf=config['model'],
     						sup_loss=sup_loss, cons_w_unsup=cons_w_unsup,
     						weakly_loss_w=config['weakly_loss_w'], use_weak_lables=config['use_weak_lables'],
-                            ignore_index=val_loader.dataset.ignore_index)
+                            ignore_index=val_loader.dataset.ignore_index, backbone_name=config['backbone'])
     print(f'\n{model}\n')
 
     # TRAINING

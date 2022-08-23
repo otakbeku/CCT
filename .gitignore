@@ -124,3 +124,5 @@ datasets/
 .idea/
 __MACOSX/
 
+*.wandb
+wandb/
