@@ -123,7 +123,7 @@ class Trainer(BaseTrainer):
                 pad_h, pad_w = up_sizes[0] - data.size(2), up_sizes[1] - data.size(3)
                 data = F.pad(data, pad=(0, pad_w, 0, pad_h), mode='reflect')
                 output = self.model(data)
-                output = output[:, :, :H, :W]
+                # output = output[:, :, :H, :W]
 
                 # LOSS
                 loss = F.cross_entropy(output, target, ignore_index=self.ignore_index)
