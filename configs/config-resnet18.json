@@ -2,10 +2,10 @@
     "name": "CCT",
     "experim_name": "CCT-resnet18d",
     "n_gpu": 1,
-    "n_labeled_examples": 100,
+    "n_labeled_examples": 60,
     "diff_lrs": true,
     "ramp_up": 0.1,
-    "unsupervised_w": 2,
+    "unsupervised_w": 5,
     "ignore_index": 255,
     "lr_scheduler": "Poly",
     "use_weak_lables":false,
@@ -103,7 +103,7 @@
         "save_dir": "saved/",
         "save_period": 20,
   
-        "monitor": "max Mean_IoU",
+        "monitor": "max Val_Mean_IoU",
         "early_stop": 10,
         
         "tensorboardX": true,

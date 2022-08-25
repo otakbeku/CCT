@@ -108,6 +108,7 @@ class Trainer(BaseTrainer):
 
         self.model.eval()
         self.wrt_mode = 'val'
+        self._reset_metrics()
         total_loss_val = AverageMeter()
         total_inter, total_union = 0, 0
         total_correct, total_label = 0, 0
@@ -119,19 +120,23 @@ class Trainer(BaseTrainer):
                 target, data = target.cuda(non_blocking=True), data.cuda(non_blocking=True)
 
                 H, W = target.size(1), target.size(2)
+                output_size = (H, W)
                 up_sizes = (ceil(H / 8) * 8, ceil(W / 8) * 8)
                 pad_h, pad_w = up_sizes[0] - data.size(2), up_sizes[1] - data.size(3)
                 data = F.pad(data, pad=(0, pad_w, 0, pad_h), mode='reflect')
-                output = self.model(data)
+                output = self.model(data, output_size=output_size)
+                # print(output.shape)
                 # output = output[:, :, :H, :W]
 
                 # LOSS
                 loss = F.cross_entropy(output, target, ignore_index=self.ignore_index)
                 total_loss_val.update(loss.item())
 
-                correct, labeled, inter, union = eval_metrics(output, target, self.num_classes, self.ignore_index)
-                total_inter, total_union = total_inter+inter, total_union+union
-                total_correct, total_label = total_correct+correct, total_label+labeled
+                # correct, labeled, inter, union = eval_metrics(output, target, self.num_classes, self.ignore_index)
+                seg_metrics = eval_metrics(output, target, self.num_classes, self.ignore_index)
+                self._update_seg_metrics(*seg_metrics)
+                # total_inter, total_union = total_inter+inter, total_union+union
+                # total_correct, total_label = total_correct+correct, total_label+labeled
 
                 # LIST OF IMAGE TO VIZ (15 images)
                 if len(val_visual) < 15:
@@ -156,6 +161,7 @@ class Trainer(BaseTrainer):
             # METRICS TO TENSORBOARD
             self.wrt_step = (epoch) * len(self.val_loader)
             self.writer.add_scalar(f'{self.wrt_mode}/loss', total_loss_val.average, self.wrt_step)
+            seg_metrics = self._get_seg_metrics(val=True)
             for k, v in list(seg_metrics.items())[:-1]: 
                 self.writer.add_scalar(f'{self.wrt_mode}/{k}', v, self.wrt_step)
 
@@ -163,7 +169,7 @@ class Trainer(BaseTrainer):
                 'val_loss': total_loss_val.average,
                 **seg_metrics
             }
-            self.html_results.add_results(epoch=epoch, seg_resuts=log)
+            self.html_results.add_results(epoch=epoch, seg_resuts=log, val=True)
             self.html_results.save()
 
             if (time.time() - self.start_time) / 3600 > 22:
@@ -251,6 +257,7 @@ class Trainer(BaseTrainer):
         pixel_accuracy_txt = "Pixel_Accuracy"
         mean_iou_txt = "Mean_IoU"
         class_iou_txt = "Class_IoU"
+        # print(pixAcc, mIoU,  IoU)
         if val:
             pixel_accuracy_txt = 'Val_'+ pixel_accuracy_txt
             mean_iou_txt = 'Val_'+ mean_iou_txt

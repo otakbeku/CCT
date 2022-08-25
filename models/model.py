@@ -82,11 +82,10 @@ class CCT(BaseModel):
             self.aux_decoders = nn.ModuleList([*vat_decoder, *drop_decoder, *cut_decoder,
                                     *context_m_decoder, *object_masking, *feature_drop, *feature_noise])
 
-    def forward(self, x_l=None, target_l=None, x_ul=None, target_ul=None, curr_iter=None, epoch=None):
+    def forward(self, x_l=None, target_l=None, x_ul=None, target_ul=None, curr_iter=None, epoch=None, output_size=None):
         if not self.training:
-            input_size = (x_l.size(2), x_l.size(3))
             output_l = self.main_decoder(self.encoder(x_l))
-            F.interpolate(output_l, size=input_size, mode='bilinear', align_corners=True)
+            output_l = F.interpolate(output_l, size=output_size, mode='bilinear', align_corners=True)
             return output_l
 
         # We compute the losses in the forward pass to avoid problems encountered in muti-gpu 

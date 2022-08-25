@@ -1,6 +1,7 @@
 import json
 import logging
 import wandb
+import datetime
 
 logging.basicConfig(level=logging.INFO, format='')
 
@@ -13,6 +14,10 @@ class Logger:
     """
     def __init__(self, config, id_wandb=None):
         wandb.login()
+        self.start_time = datetime.datetime.now().strftime('%m-%d_%H-%M')
+        self.tensor_log_dir = os.path.join(
+            config['trainer']['log_dir'], config['name'], self.start_time)
+        wandb.tensorboard.patch(root_logdir=config['trainer']['log_dir'])
         if not id_wandb:
             id_wandb = wandb.util.generate_id()
         config['id_wandb'] = id_wandb

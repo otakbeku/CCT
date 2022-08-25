@@ -60,20 +60,30 @@ class HTML:
         else:
             self.doc.add(p(json.dumps(config["train_supervised"], indent=4, sort_keys=True)))
 
-    def add_results(self, epoch, seg_resuts, width=400, domain=None):
+    def add_results(self, epoch, seg_resuts, width=400, domain=None, val=False):
         para = p(__pretty=False)
         with self.t:
             with tr():
                 with td(style="word-wrap: break-word;", halign="center", valign="top"):
                     td(f'Epoch : {epoch}')
-                    if domain is not None:
-                        td(f'Mean_IoU_{domain} : {seg_resuts[f"Mean_IoU_{domain}"]}')
-                        td(f'PixelAcc_{domain} : {seg_resuts[f"Pixel_Accuracy_{domain}"]}')
-                        td(f'Val Loss_{domain} : {seg_resuts[f"val_loss_{domain}"]}')
+                    if val:
+                        if domain is not None:
+                            td(f'Val_Mean_IoU_{domain} : {seg_resuts[f"Val_Mean_IoU_{domain}"]}')
+                            td(f'Val_PixelAcc_{domain} : {seg_resuts[f"Val_Pixel_Accuracy_{domain}"]}')
+                            td(f'Val Loss_{domain} : {seg_resuts[f"val_loss_{domain}"]}')
+                        else:
+                            td(f'Val_Mean_IoU : {seg_resuts["Val_Mean_IoU"]}')
+                            td(f'Val_PixelAcc : {seg_resuts["Val_Pixel_Accuracy"]}')
+                            td(f'Val Loss : {seg_resuts["val_loss"]}')
                     else:
-                        td(f'Mean_IoU : {seg_resuts["Mean_IoU"]}')
-                        td(f'PixelAcc : {seg_resuts["Pixel_Accuracy"]}')
-                        td(f'Val Loss : {seg_resuts["val_loss"]}')
+                        if domain is not None:
+                            td(f'Mean_IoU_{domain} : {seg_resuts[f"Mean_IoU_{domain}"]}')
+                            td(f'PixelAcc_{domain} : {seg_resuts[f"Pixel_Accuracy_{domain}"]}')
+                            td(f'Val Loss_{domain} : {seg_resuts[f"val_loss_{domain}"]}')
+                        else:
+                            td(f'Mean_IoU : {seg_resuts["Mean_IoU"]}')
+                            td(f'PixelAcc : {seg_resuts["Pixel_Accuracy"]}')
+                            td(f'Val Loss : {seg_resuts["val_loss"]}')
 
 
     def save(self):

@@ -10,10 +10,34 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 import json
 
+PASCAL_CLASSES = [
+    'Background',
+    'Aeroplane',
+    'Bicycle',
+    'Bird',
+    'Boat',
+    'Bottle',
+    'Bus',
+    'Car',
+    'Cat',
+    'Chair',
+    'Cow',
+    'Diningtable',
+    'Dog',
+    'Horse',
+    'Motorbike',
+    'Person',
+    'Pottedplant',
+    'Sheep',
+    'Sofa',
+    'Train',
+    'Tv-monitor'
+]
+
 class VOCDataset(BaseDataSet):
     def __init__(self, **kwargs):
         self.num_classes = 21
-
+        self.class_names = PASCAL_CLASSES
         self.palette = pallete.get_voc_pallete(self.num_classes)
         super(VOCDataset, self).__init__(**kwargs)
 
