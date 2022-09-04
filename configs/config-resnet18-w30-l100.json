@@ -5,7 +5,7 @@
     "n_labeled_examples": 100,
     "diff_lrs": true,
     "ramp_up": 0.1,
-    "unsupervised_w": 10,
+    "unsupervised_w": 30,
     "ignore_index": 255,
     "lr_scheduler": "Poly",
     "use_weak_lables":false,

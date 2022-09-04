@@ -1,0 +1,6 @@
+python train.py --config configs/config-resnet18-w15-l500.json    
+python train.py --config configs/config-resnet18-w15-l1000.json 
+python train.py --config configs/config-resnet18-w30-l60.json      
+python train.py --config configs/config-resnet18-w30-l100.json
+python train.py --config configs/config-resnet18-w30-l500.json      
+python train.py --config configs/config-resnet18-w30-l1000.json                                                                         
