@@ -1,8 +1,8 @@
 {
-    "name": "CCT",
+    "name": "CCT-w10-L500",
     "experim_name": "CCT-resnet18d",
     "n_gpu": 1,
-    "n_labeled_examples": 100,
+    "n_labeled_examples": 500,
     "diff_lrs": true,
     "ramp_up": 0.1,
     "unsupervised_w": 10,
@@ -107,7 +107,7 @@
         "early_stop": 10,
         
         "tensorboardX": true,
-        "log_dir": "saved/",
+        "log_dir": "saved/W10-L500",
         "log_per_iter": 20,
 
         "val": true,
